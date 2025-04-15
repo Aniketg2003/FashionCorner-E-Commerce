@@ -24,9 +24,11 @@ const Product = () => {
   const [canReview, setCanReview] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: '' });
 
+
   useEffect(() => {
     const fetchProductData = () => {
       const foundProduct = products.find((item) => item._id === productId);
+
       if (foundProduct) {
         setProductData(foundProduct);
         setImage(foundProduct.image[0]);
@@ -37,21 +39,30 @@ const Product = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/api/review/product/${productId}`, {
-        headers: { token:token } });
-      console.log("Reviews response:", response.data);  // <-- log the entire response
+      
+      const response = await axios.get(`http://localhost:4000/api/review/product/${productId}`, {
+        headers: { token }
+      });
+      console.log("Response Status:", response.status);
+      console.log("Reviews response:", response.data);
       if (response.data.success) {
         const sorted = response.data.reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
         setReviews(sorted);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error("Failed to fetch reviews:", error?.response?.data || error.message);
     }
   };
-
   useEffect(() => {
     if (productId) fetchReviews();
   }, [productId]);
+  
+  
+
+  
+
+
+
 
   useEffect(() => {
     const checkCanReview = async () => {
@@ -245,6 +256,7 @@ const Product = () => {
 
               {/* Reviews List */}
               <div>
+                
                 <div className='flex items-center mb-6'>
                   <div className='flex items-center mr-4'>
                     {renderStars(Math.round(averageRating))}
@@ -285,32 +297,6 @@ const Product = () => {
   
 };
 
-const ReviewTest = ({ productId }) => {
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(`http://localhost:4000/api/review/product/${productId}`);
-        console.log("✅ Review fetch successful:", res.data);
-
-        if (res.data.success) {
-          const reviews = res.data.reviews;
-          console.log("📝 Reviews:", reviews);
-        } else {
-          console.warn("⚠️ Backend returned success: false");
-        }
-      } catch (error) {
-        console.error("❌ Error fetching reviews:", error);
-      }
-    };
-
-    if (productId) {
-      console.log("🔍 Fetching reviews for product:", productId);
-      fetchReviews();
-    }
-  }, [productId]);
-
-  return null; // Or replace with JSX if you want to display
-};
 
 
 
