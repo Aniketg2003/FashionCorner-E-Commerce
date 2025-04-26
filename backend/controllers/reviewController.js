@@ -1,18 +1,22 @@
 import Review from '../models/reviewModel.js';
 import mongoose from 'mongoose';
-import orderModel from '../models/orderModel.js'; // You missed importing this
-import reviewModel from '../models/reviewModel.js'; // You were using `reviewModel` here
+import orderModel from '../models/ordermodel.js'; // Order model
+import reviewModel from '../models/reviewModel.js'; // Review model
 
 // Submit a new review
 export const submitReview = async (req, res) => {
   try {
     const { productId, userId, username, rating, comment } = req.body;
 
-    if (!productId || !userId || !username || !rating || !comment) {
-      return res.json({ success: false, message: 'All fields are required' });
+    // Check if the user has already reviewed this product
+    const existingReview = await reviewModel.findOne({ userId, productId });
+
+    if (existingReview) {
+      return res.status(400).json({ success: false, message: 'You have already reviewed this product' });
     }
 
-    const newReview = new Review({
+    // If the user hasn't reviewed yet, proceed to create the new review
+    const newReview = new reviewModel({
       productId,
       userId,
       username,
@@ -25,7 +29,7 @@ export const submitReview = async (req, res) => {
     res.json({ success: true, message: 'Review submitted successfully' });
   } catch (error) {
     console.log('Review submission error:', error);
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -34,7 +38,7 @@ export const getProductReviews = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const reviews = await Review.find({
+    const reviews = await reviewModel.find({
       $or: [
         { productId: new mongoose.Types.ObjectId(productId) },
         { productId: productId }
@@ -50,16 +54,21 @@ export const getProductReviews = async (req, res) => {
 
 // Check if user can review
 export const canUserReview = async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId; // Assuming `req.userId` is set from JWT or middleware
   const { productId } = req.params;
 
   try {
+    // Check if the user has ordered the product
     const orders = await orderModel.find({ userId, 'items.productId': productId });
+
+    // Check if the user has already reviewed the product
     const alreadyReviewed = await reviewModel.findOne({ userId, productId });
 
+    // User can review if they have ordered the product and haven't reviewed yet
     const canReview = orders.length > 0 && !alreadyReviewed;
+
     res.status(200).json({ success: true, canReview });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to check review permission' });
   }
-}; 
+};

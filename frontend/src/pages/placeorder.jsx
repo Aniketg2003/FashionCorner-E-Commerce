@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import Title from '../components/Title'
 import Cartdata from '../components/Cartdata'
 import { assets } from '../assets/assets'
@@ -22,6 +22,46 @@ const placeorder = () => {
       country:'',
       phone:''
     })
+
+    useEffect(() => {
+      const fetchUserAddress = async () => {
+        try {
+          const response = await axios.post(
+            `${backendurl}/api/order/userorders`,
+            {},
+            { headers: { token } }
+          );
+          if (response.data.success) {
+            const orders = response.data.orders; // NOT response.data.user
+    
+            if (orders.length > 0) {
+              const latestOrder = orders[0]; // Assuming latest order is first, otherwise sort by date
+    
+              const address = latestOrder.address || {};
+    
+              setFormdata({
+                firstName: address.firstName || '',
+                lastName: address.lastName || '',
+                email: address.email || '',
+                street: address.street || '',
+                city: address.city || '',
+                state: address.state || '',
+                zipcode: address.zipcode || '',
+                country: address.country || '',
+                phone: address.phone || ''
+              });
+            }
+          } else {
+            console.error(response.data.message);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user orders:", error);
+        }
+      };
+    
+      fetchUserAddress();
+    }, [backendurl, token]);
+
 
     const onChangeHandler=(event)=>{
       const name = event.target.name

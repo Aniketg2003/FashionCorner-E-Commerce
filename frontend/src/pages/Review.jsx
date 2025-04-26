@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { shopcontext } from '../context/shopcontext';
 import axios from 'axios';
@@ -12,13 +12,38 @@ const ReviewForm = () => {
     const [rating, setRating] = useState('');
     const [comment, setComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [canReview, setCanReview] = useState(false);
 
-    
+    useEffect(() => {
+        // Check if the user can review this product
+        const checkCanReview = async () => {
+            try {
+                const res = await axios.get(`${backendurl}/api/review/canUserReview/${productId}`, {
+                    headers: { token }
+                });
+
+                setCanReview(res.data.canReview);
+                if (!res.data.canReview) {
+                    toast.info('You have already reviewed this product or haven\'t purchased it yet');
+                }
+            } catch (err) {
+                console.error('Error checking review permission:', err);
+            }
+        };
+
+        checkCanReview();
+    }, [backendurl, token, productId]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!rating || !comment) {
             toast.error('Please provide both rating and comment');
+            return;
+        }
+
+        if (!canReview) {
+            toast.error('You can\'t review this product');
             return;
         }
 
@@ -96,8 +121,8 @@ const ReviewForm = () => {
 
                 <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isSubmitting || !canReview}
+                    className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${isSubmitting || !canReview ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isSubmitting ? 'Submitting...' : 'Submit Review'}
                 </button>

@@ -175,8 +175,8 @@ const Profile = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${
-                        item.status === 'delivered' ? 'bg-green-500' :
-                        item.status === 'shipped' ? 'bg-blue-500' : 
+                        item.status === 'Delivered' ? 'bg-green-500' :
+                        item.status === 'Shipped' ? 'bg-blue-500' : 
                         'bg-yellow-500'
                       }`} />
                       <span className="capitalize">{item.status.toLowerCase()}</span>

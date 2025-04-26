@@ -132,8 +132,8 @@ const Order = () => {
               <div className="md:w-1/2 flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${
-                    item.status === 'delivered' ? 'bg-green-600' : 
-                    item.status === 'shipped' ? 'bg-blue-600' : 
+                    item.status === 'Delivered' ? 'bg-green-600' : 
+                    item.status === 'Shipped' ? 'bg-blue-600' : 
                     'bg-yellow-500'
                   }`}></div>
                   <p className="text-sm md:text-base capitalize">{item.status.toLowerCase()}</p>
